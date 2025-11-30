@@ -1,50 +1,56 @@
-// Versión del caché: súbela (v1, v2, v3...) cuando hagas cambios gordos
-const CACHE_VERSION = 'v1.0.0';
+// Versión del caché: súbela cuando cambies cosas gordas
+const CACHE_VERSION = "v1.1.0";
 const CACHE_NAME = `entrenos-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  "./",
+  "./index.html",
+  "./style.css",
+  "./app.js",
+  "./manifest.webmanifest",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
-// INSTALACIÓN: precarga lo básico y toma control rápido
-self.addEventListener('install', (event) => {
+// INSTALACIÓN: precarga assets básicos
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches
+      .open(CACHE_NAME)
       .then(cache => cache.addAll(ASSETS))
       .then(() => self.skipWaiting())
   );
 });
 
-// ACTIVACIÓN: limpia cachés viejas y toma control de las pestañas
-self.addEventListener('activate', (event) => {
+// ACTIVACIÓN: borra cachés viejos
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+    caches
+      .keys()
+      .then(keys =>
+        Promise.all(
+          keys
+            .filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
+        )
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   );
 });
 
-// FETCH: 
-// - para navegación (HTML): network-first (auto actualiza la app cuando hay versión nueva)
-// - para estáticos: cache-first con actualización en segundo plano
-self.addEventListener('fetch', (event) => {
+// FETCH:
+// - Navegación/HTML: network-first para auto-actualizar.
+// - Estáticos: cache-first con actualización en background.
+self.addEventListener("fetch", event => {
   const req = event.request;
 
-  // navegación / HTML -> network first
-  if (req.mode === 'navigate') {
+  // Navegación → network-first
+  if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
         .then(res => {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(req, resClone));
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
           return res;
         })
         .catch(() => caches.match(req))
@@ -52,20 +58,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // otros recursos -> cache first + update en background
+  // Otros recursos → cache-first + update en segundo plano
   event.respondWith(
     caches.match(req).then(cached => {
       if (cached) {
-        // actualiza en segundo plano si hay red
-        fetch(req).then(fresh => {
-          caches.open(CACHE_NAME).then(cache => cache.put(req, fresh));
-        }).catch(() => {});
+        // actualiza en background
+        fetch(req)
+          .then(fresh => {
+            caches.open(CACHE_NAME).then(cache => cache.put(req, fresh));
+          })
+          .catch(() => {});
         return cached;
       }
-      // si no está en caché, tira de red y guarda
       return fetch(req).then(res => {
-        const resClone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(req, resClone));
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
         return res;
       });
     })

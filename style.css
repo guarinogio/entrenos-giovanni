@@ -308,6 +308,26 @@ button.secondary {
   color: var(--text);
 }
 
+/* BOTONES PEQUEÑOS / HISTORIAL */
+
+.small-btn {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.7rem;
+  border-radius: 0.6rem;
+}
+
+.small-btn.secondary {
+  background: rgba(226, 232, 240, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: var(--text);
+}
+
+.small-btn.danger {
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #fecaca;
+}
+
 /* HISTORIAL */
 
 #history table {
@@ -326,6 +346,34 @@ button.secondary {
   color: #f97316;
   font-size: 0.65rem;
   margin-left: 0.35rem;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.history-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.session-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.session-header-row h4 {
+  margin: 0;
+  font-size: 0.8rem;
 }
 
 /* ---------- PANTALLAS MÁS GRANDES ---------- */

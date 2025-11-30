@@ -1,4 +1,60 @@
-// ======== PLAN DE FUERZA A/B ========
+// =================== CONFIG / STORAGE ===================
+
+const STORAGE_KEY = "giovanni_workouts_v2";
+const SCHEMA_VERSION = 1;
+
+// Carga segura desde localStorage (soporta formato viejo de solo array)
+function loadRawData() {
+  let rawStr =
+    localStorage.getItem(STORAGE_KEY) ||
+    localStorage.getItem("giovanni_workouts");
+
+  if (!rawStr) {
+    return { schemaVersion: SCHEMA_VERSION, sessions: [] };
+  }
+
+  try {
+    const parsed = JSON.parse(rawStr);
+    if (Array.isArray(parsed)) {
+      // formato antiguo: solo array
+      return { schemaVersion: SCHEMA_VERSION, sessions: parsed };
+    }
+    if (parsed && Array.isArray(parsed.sessions)) {
+      return {
+        schemaVersion: parsed.schemaVersion || SCHEMA_VERSION,
+        sessions: parsed.sessions
+      };
+    }
+  } catch (err) {
+    console.error("Error leyendo almacenamiento:", err);
+  }
+
+  return { schemaVersion: SCHEMA_VERSION, sessions: [] };
+}
+
+function getSessions() {
+  return loadRawData().sessions;
+}
+
+function saveSessions(sessions) {
+  const payload = { schemaVersion: SCHEMA_VERSION, sessions };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  // limpia clave antigua si existía
+  localStorage.removeItem("giovanni_workouts");
+}
+
+function todayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+
+// mostrar fecha en header
+document.addEventListener("DOMContentLoaded", () => {
+  const dateSpan = document.getElementById("todayDate");
+  if (dateSpan) dateSpan.textContent = todayStr();
+});
+
+// =================== PLANES DE ENTRENAMIENTO ===================
+
 const WORKOUTS = {
   A: [
     {
@@ -101,7 +157,7 @@ const WORKOUTS = {
   ]
 };
 
-// ======== CARDIO ========
+// CARDIO
 const CARDIO_MODALITIES = [
   "Bici estática / Spinning",
   "Elíptica",
@@ -116,7 +172,7 @@ const CARDIO_ZONES = [
   { label: "Picos controlados (155–170 lpm) — RPE 7–8", value: "PICOS" }
 ];
 
-// ======== MOVILIDAD ========
+// MOVILIDAD
 const MOBILITY_BLOCKS = [
   {
     title: "Daily Reset (8–10 min)",
@@ -168,26 +224,8 @@ const MOBILITY_BLOCKS = [
   }
 ];
 
-// ======== STORAGE ========
-function getSessions() {
-  return JSON.parse(localStorage.getItem("giovanni_workouts") || "[]");
-}
+// =================== HELPERS DE PROGRESIÓN ===================
 
-function saveSessions(s) {
-  localStorage.setItem("giovanni_workouts", JSON.stringify(s));
-}
-
-function todayStr() {
-  return new Date().toISOString().split("T")[0];
-}
-
-// fecha en header
-document.addEventListener("DOMContentLoaded", () => {
-  const dateSpan = document.getElementById("todayDate");
-  if (dateSpan) dateSpan.textContent = todayStr();
-});
-
-// ======== HELPERS ========
 function getExerciseHistory(exName) {
   const all = getSessions().slice().reverse();
   const arr = [];
@@ -242,7 +280,7 @@ function formatTime(s) {
     .padStart(2, "0")}`;
 }
 
-// ======== SEMÁFORO ========
+// Semáforo de carga
 function getSuggestedWeight(exName, setIndex, defW) {
   const history = getExerciseHistory(exName);
   if (!history.length) return defW;
@@ -272,7 +310,8 @@ function getSuggestedWeight(exName, setIndex, defW) {
   return w1;
 }
 
-// ======== FUERZA (RENDER) ========
+// =================== RENDER FUERZA ===================
+
 const activeTimers = {};
 
 function updateWarmupsForExercise(dayKey, exIndex) {
@@ -302,8 +341,9 @@ function startRestTimer(dayKey, exIndex) {
   const ex = WORKOUTS[dayKey][exIndex];
   const secs = restToSeconds(ex.rest);
   const span = document.getElementById(`timer-${dayKey}-${exIndex}`);
-  if (activeTimers[`${dayKey}-${exIndex}`])
+  if (activeTimers[`${dayKey}-${exIndex}`]) {
     clearInterval(activeTimers[`${dayKey}-${exIndex}`]);
+  }
   let remaining = secs;
   span.textContent = formatTime(remaining);
   activeTimers[`${dayKey}-${exIndex}`] = setInterval(() => {
@@ -354,9 +394,15 @@ function renderStrength(dayKey) {
       block.className = "set-field";
       block.innerHTML = `
         <label>${set.label} <span class="field-hint">(plan: ${set.weight} kg)</span></label>
-        <input type="text" data-ex="${exIndex}" data-set="${setIndex}" data-field="weight" value="${suggested}" placeholder="peso (kg)" />
-        <input type="text" data-ex="${exIndex}" data-set="${setIndex}" data-field="reps" placeholder="reps" />
-        <input type="text" data-ex="${exIndex}" data-set="${setIndex}" data-field="rpe" placeholder="RPE" />
+        <input type="text" inputmode="decimal" autocomplete="off"
+          data-ex="${exIndex}" data-set="${setIndex}" data-field="weight"
+          value="${suggested}" placeholder="peso (kg)" />
+        <input type="text" inputmode="numeric" autocomplete="off"
+          data-ex="${exIndex}" data-set="${setIndex}" data-field="reps"
+          placeholder="reps" />
+        <input type="text" inputmode="decimal" autocomplete="off"
+          data-ex="${exIndex}" data-set="${setIndex}" data-field="rpe"
+          placeholder="RPE" />
         <div class="field-hint">Objetivo: ${set.targetReps} reps</div>
       `;
       setsDiv.appendChild(block);
@@ -399,7 +445,8 @@ function renderStrength(dayKey) {
   });
 }
 
-// ======== CARDIO (RENDER) ========
+// =================== RENDER CARDIO ===================
+
 function renderCardio() {
   const cont = document.getElementById("workoutContainer");
   const dayHint = document.getElementById("dayHint");
@@ -416,22 +463,26 @@ function renderCardio() {
       <div class="cardio-field">
         <label>Modalidad</label>
         <select id="cardioMod">
-          ${CARDIO_MODALITIES.map(m => `<option value="${m}">${m}</option>`).join("")}
+          ${CARDIO_MODALITIES.map(
+            m => `<option value="${m}">${m}</option>`
+          ).join("")}
         </select>
       </div>
       <div class="cardio-field">
         <label>Duración (min)</label>
-        <input type="text" id="cardioDur" value="30" />
+        <input type="text" inputmode="numeric" autocomplete="off" id="cardioDur" value="30" />
       </div>
       <div class="cardio-field">
         <label>Intensidad / Zona</label>
         <select id="cardioZone">
-          ${CARDIO_ZONES.map(z => `<option value="${z.value}">${z.label}</option>`).join("")}
+          ${CARDIO_ZONES.map(
+            z => `<option value="${z.value}">${z.label}</option>`
+          ).join("")}
         </select>
       </div>
       <div class="cardio-field">
         <label>RPE (opcional)</label>
-        <input type="text" id="cardioRpe" placeholder="3–4" />
+        <input type="text" inputmode="decimal" autocomplete="off" id="cardioRpe" placeholder="3–4" />
       </div>
     </div>
     <p class="small">
@@ -441,7 +492,8 @@ function renderCardio() {
   cont.appendChild(card);
 }
 
-// ======== MOVILIDAD (RENDER) ========
+// =================== RENDER MOVILIDAD ===================
+
 function renderMobility() {
   const cont = document.getElementById("workoutContainer");
   const dayHint = document.getElementById("dayHint");
@@ -479,7 +531,8 @@ function renderMobility() {
   cont.appendChild(card);
 }
 
-// ======== GUARDAR SESIONES ========
+// =================== GUARDAR SESIONES ===================
+
 function saveStrength(dayKey) {
   const todayWorkout = WORKOUTS[dayKey];
   const exercisesData = [];
@@ -518,7 +571,12 @@ function saveStrength(dayKey) {
   });
 
   const notes = document.getElementById("notes").value;
-  const payload = { date: todayStr(), type: dayKey, notes, exercises: exercisesData };
+  const payload = {
+    date: todayStr(),
+    type: dayKey,
+    notes,
+    exercises: exercisesData
+  };
 
   const all = getSessions();
   all.push(payload);
@@ -566,58 +624,191 @@ function saveMobility() {
   alert("Sesión de movilidad guardada ✅");
 }
 
-// ======== HISTORIAL ========
+// =================== EXPORT / IMPORT ===================
+
+function exportSessions() {
+  const data = getSessions();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `entrenos-${todayStr()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function handleImportFileChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const text = e.target.result;
+      const parsed = JSON.parse(text);
+      let sessions = [];
+      if (Array.isArray(parsed)) {
+        sessions = parsed;
+      } else if (parsed && Array.isArray(parsed.sessions)) {
+        sessions = parsed.sessions;
+      } else {
+        throw new Error("Formato inválido");
+      }
+      saveSessions(sessions);
+      alert("Historial importado ✅");
+      renderHistory();
+    } catch (err) {
+      console.error("Error importando historial:", err);
+      alert("No pude importar ese archivo. ¿Es el JSON correcto?");
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
+// =================== HISTORIAL ===================
+
+function attachHistoryEvents() {
+  const exportBtn = document.getElementById("exportBtn");
+  const importBtn = document.getElementById("importBtn");
+
+  if (exportBtn) {
+    exportBtn.onclick = exportSessions;
+  }
+  if (importBtn) {
+    importBtn.onclick = () => {
+      const input = document.getElementById("importFile");
+      if (input) input.click();
+    };
+  }
+
+  const deleteBtns = document.querySelectorAll("[data-delete-index]");
+  deleteBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idxStr = btn.getAttribute("data-delete-index");
+      const idx = Number(idxStr);
+      if (Number.isNaN(idx)) return;
+      const sessions = getSessions();
+      if (idx < 0 || idx >= sessions.length) return;
+      const ok = confirm("¿Borrar esta sesión del historial?");
+      if (!ok) return;
+      sessions.splice(idx, 1);
+      saveSessions(sessions);
+      renderHistory();
+    });
+  });
+}
+
 function renderHistory() {
   const historyDiv = document.getElementById("history");
-  const data = getSessions().slice().reverse();
+  const dataAsc = getSessions();
+  const wrapped = dataAsc.map((sess, idx) => ({ sess, idx }));
+  const data = wrapped.slice().reverse();
+
+  let html =
+    "<div class='history-header'>" +
+    "<h3>Historial</h3>" +
+    "<div class='history-actions'>" +
+    "<button class='small-btn' id='exportBtn'>Exportar</button>" +
+    "<button class='small-btn secondary' id='importBtn'>Importar</button>" +
+    "</div></div>";
+
   if (!data.length) {
-    historyDiv.innerHTML = "<p class='small'>No hay sesiones aún.</p>";
+    html += "<p class='small'>No hay sesiones aún.</p>";
+    historyDiv.innerHTML = html;
     historyDiv.style.display = "block";
+    attachHistoryEvents();
     historyDiv.scrollIntoView({ behavior: "smooth" });
     return;
   }
 
-  let html = "<h3>Historial</h3>";
-  data.forEach(sess => {
-    html += `<h4 style="margin-bottom:.3rem;">${sess.date} — ${sess.type}</h4><table>`;
+  data.forEach(wrapper => {
+    const sess = wrapper.sess;
+    const originalIndex = wrapper.idx;
+
+    html +=
+      "<div class='session-header-row'>" +
+      "<h4>" +
+      sess.date +
+      " — " +
+      sess.type +
+      "</h4>" +
+      "<button class='small-btn danger' data-delete-index='" +
+      originalIndex +
+      "'>Borrar</button>" +
+      "</div><table>";
+
     if (sess.type === "A" || sess.type === "B") {
-      sess.exercises.forEach(ex => {
-        html += `<tr><th colspan="4" style="text-align:left;">${ex.name}</th></tr>`;
-        ex.sets.forEach(s => {
-          html += `<tr>
-            <td>${s.label}</td>
-            <td>${s.weight}</td>
-            <td>${s.reps} reps</td>
-            <td>${
-              s.isPR
-                ? "<span class='pr-badge'>🏅 PR</span>"
-                : s.rpe
-                ? "RPE " + s.rpe
-                : ""
-            }</td>
-          </tr>`;
+      (sess.exercises || []).forEach(ex => {
+        html +=
+          "<tr><th colspan='4' style='text-align:left;'>" +
+          ex.name +
+          "</th></tr>";
+        (ex.sets || []).forEach(s => {
+          html +=
+            "<tr>" +
+            "<td>" +
+            (s.label || "") +
+            "</td>" +
+            "<td>" +
+            (s.weight || "") +
+            "</td>" +
+            "<td>" +
+            (s.reps || "") +
+            " reps</td>" +
+            "<td>" +
+            (s.isPR
+              ? "<span class='pr-badge'>🏅 PR</span>"
+              : s.rpe
+              ? "RPE " + s.rpe
+              : "") +
+            "</td>" +
+            "</tr>";
         });
       });
     } else if (sess.type === "Cardio") {
-      html += `<tr><td>Modalidad</td><td>${sess.cardio.modality}</td><td>Duración</td><td>${sess.cardio.duration} min</td></tr>`;
-      html += `<tr><td>Zona</td><td>${sess.cardio.zone}</td><td>RPE</td><td>${
-        sess.cardio.rpe || "-"
-      }</td></tr>`;
+      html +=
+        "<tr><td>Modalidad</td><td>" +
+        sess.cardio.modality +
+        "</td><td>Duración</td><td>" +
+        sess.cardio.duration +
+        " min</td></tr>";
+      html +=
+        "<tr><td>Zona</td><td>" +
+        sess.cardio.zone +
+        "</td><td>RPE</td><td>" +
+        (sess.cardio.rpe || "-") +
+        "</td></tr>";
     } else if (sess.type === "Movilidad") {
-      html += `<tr><td colspan="4">${(sess.mobility_done || []).join("<br>")}</td></tr>`;
+      html +=
+        "<tr><td colspan='4'>" +
+        ((sess.mobility_done || []).join("<br>") || "") +
+        "</td></tr>";
     }
+
     if (sess.notes) {
-      html += `<tr><td colspan="4"><span class="small">Notas: ${sess.notes}</span></td></tr>`;
+      html +=
+        "<tr><td colspan='4'><span class='small'>Notas: " +
+        sess.notes +
+        "</span></td></tr>";
     }
+
     html += "</table><br/>";
   });
 
   historyDiv.innerHTML = html;
   historyDiv.style.display = "block";
+  attachHistoryEvents();
   historyDiv.scrollIntoView({ behavior: "smooth" });
 }
 
-// ======== INIT UI / EVENTOS ========
+// =================== INIT UI / EVENTOS ===================
+
 document.addEventListener("DOMContentLoaded", () => {
   let currentView = "strength-A";
   renderStrength("A");
@@ -626,34 +817,51 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("saveBtn");
   const viewSelect = document.getElementById("viewSelect");
   const histBtn = document.getElementById("viewHistoryBtn");
+  const importInput = document.getElementById("importFile");
 
-  loadBtn.addEventListener("click", () => {
-    currentView = viewSelect.value;
-    document.getElementById("history").style.display = "none";
+  if (loadBtn && viewSelect) {
+    loadBtn.addEventListener("click", () => {
+      currentView = viewSelect.value;
+      document.getElementById("history").style.display = "none";
 
-    if (currentView === "strength-A") renderStrength("A");
-    else if (currentView === "strength-B") renderStrength("B");
-    else if (currentView === "cardio") renderCardio();
-    else if (currentView === "mobility") renderMobility();
-  });
+      if (currentView === "strength-A") renderStrength("A");
+      else if (currentView === "strength-B") renderStrength("B");
+      else if (currentView === "cardio") renderCardio();
+      else if (currentView === "mobility") renderMobility();
+    });
+  }
 
-  saveBtn.addEventListener("click", () => {
-    if (currentView === "strength-A") saveStrength("A");
-    else if (currentView === "strength-B") saveStrength("B");
-    else if (currentView === "cardio") saveCardio();
-    else if (currentView === "mobility") saveMobility();
-  });
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => {
+      if (currentView === "strength-A") saveStrength("A");
+      else if (currentView === "strength-B") saveStrength("B");
+      else if (currentView === "cardio") saveCardio();
+      else if (currentView === "mobility") saveMobility();
+    });
+  }
 
-  histBtn.addEventListener("click", renderHistory);
+  if (histBtn) {
+    histBtn.addEventListener("click", () => {
+      renderHistory();
+    });
+  }
+
+  if (importInput) {
+    importInput.addEventListener("change", handleImportFileChange);
+  }
 });
 
-// ======== SERVICE WORKER REGISTRATION ========
+// =================== SERVICE WORKER (PWA) ===================
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("./sw.js")
       .then(reg => {
-        if (navigator.onLine) reg.update();
+        // fuerza comprobación de nueva versión al abrir
+        if (navigator.onLine && reg.update) {
+          reg.update();
+        }
       })
       .catch(err => {
         console.error("Service worker registration failed:", err);
