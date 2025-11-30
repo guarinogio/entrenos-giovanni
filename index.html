@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <meta charset="UTF-8" />
   <title>Entrenos Giovanni</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -762,6 +765,23 @@
     document.getElementById("viewHistoryBtn").addEventListener("click", () => {
       renderHistory();
     });
+
+        // ======== SERVICE WORKER REGISTRATION (PWA) ========
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('./sw.js')
+          .then(reg => {
+            // fuerza a comprobar si hay nueva versión del SW cuando abres la app
+            if (navigator.onLine) {
+              reg.update();
+            }
+          })
+          .catch(err => {
+            console.error('Service worker registration failed:', err);
+          });
+      });
+    }
   </script>
 </body>
 </html>
