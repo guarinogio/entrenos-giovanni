@@ -1,0 +1,365 @@
+:root {
+  --bg: #0f172a;
+  --bg2: rgba(15, 23, 42, 0.5);
+  --panel: rgba(2, 6, 23, 0.35);
+  --line: rgba(148, 163, 184, 0.15);
+  --text: #e2e8f0;
+  --muted: rgba(226, 232, 240, 0.6);
+  --accent: #38bdf8;
+  --radius-lg: 0.9rem;
+  --radius-md: 0.7rem;
+
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at top left, #1e293b 0, #020617 55%, #020617 100%);
+}
+
+/* HEADER / LAYOUT */
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: linear-gradient(180deg, #020617 0%, rgba(15, 23, 42, 0.4) 80%, transparent 100%);
+  padding: 0.7rem 0 0.45rem;
+  backdrop-filter: blur(12px);
+}
+
+.container {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 0 0.75rem 4.5rem;
+}
+
+h1 {
+  font-size: 1.15rem;
+  margin: 0 0 0.35rem;
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.small {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.top-bar {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+}
+
+.top-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* CARDS / CONTENEDORES */
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 0.8rem 0.8rem 0.9rem;
+  margin-top: 0.8rem;
+  width: 100%;
+}
+
+.exercise {
+  background: var(--panel);
+}
+
+textarea {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.35);
+  border-radius: 0.7rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 0.45rem 0.55rem;
+  color: var(--text);
+  font-size: 0.8rem;
+  resize: vertical;
+}
+
+/* SELECTS / INPUTS */
+
+select {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 0.45rem 0.6rem;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+label {
+  font-size: 0.65rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.45rem;
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+input::placeholder {
+  color: rgba(226, 232, 240, 0.35);
+}
+
+/* EJERCICIOS FUERZA */
+
+.exercise-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
+}
+
+.exercise-header h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.info-line {
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6rem;
+  white-space: nowrap;
+}
+
+/* GRIDS MOBILE FIRST (1 COLUMNA) */
+
+.warmups,
+.sets,
+.cardio-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* móvil: una columna */
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+  align-items: flex-start;
+}
+
+.warmups-block,
+.cardio-field {
+  background: rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 0.65rem;
+  padding: 0.4rem 0.55rem 0.5rem;
+}
+
+.warmups-block strong {
+  display: block;
+  font-size: 0.65rem;
+  margin-bottom: 0.15rem;
+}
+
+.set-field {
+  background: rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 0.65rem;
+  padding: 0.45rem 0.55rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-hint {
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+
+/* REST TIMER */
+
+.rest-timer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 0.2rem;
+}
+
+.rest-timer button {
+  background: rgba(226, 232, 240, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: var(--text);
+  border-radius: 0.55rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.7rem;
+}
+
+.rest-timer span {
+  font-size: 0.7rem;
+  color: var(--muted);
+  min-width: 3.3rem;
+  text-align: left;
+}
+
+/* MOVILIDAD */
+
+.mob-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* móvil: 1 columna */
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+}
+
+.mob-block {
+  background: rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.6rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mob-block h4 {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.mob-item {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+}
+
+.mob-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 0.15rem;
+}
+
+.mob-item label {
+  flex: 1;
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+/* FOOTER BOTONES */
+
+.footer-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.96);
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 0.55rem 0.75rem 0.65rem;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+  z-index: 40;
+}
+
+button {
+  background: var(--accent);
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.4rem 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.8rem;
+}
+
+button.secondary {
+  background: rgba(226, 232, 240, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: var(--text);
+}
+
+/* HISTORIAL */
+
+#history table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#history th,
+#history td {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  padding: 0.3rem 0;
+  font-size: 0.7rem;
+}
+
+.pr-badge {
+  color: #f97316;
+  font-size: 0.65rem;
+  margin-left: 0.35rem;
+}
+
+/* ---------- PANTALLAS MÁS GRANDES ---------- */
+
+@media (min-width: 720px) {
+  header {
+    padding-top: 0.8rem;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+  }
+
+  .exercise-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .warmups,
+  .sets,
+  .cardio-grid {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  }
+
+  .mob-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  }
+
+  .rest-timer {
+    justify-content: flex-end;
+  }
+
+  .footer-actions {
+    justify-content: center;
+  }
+}
